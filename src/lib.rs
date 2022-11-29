@@ -228,15 +228,19 @@ impl FibFaucetTrait for FibFaucetContract {
 
     fn init(env: Env, spots: u32) -> Result<(), Error> {
         if !has_admin(&env) {
-            let admin_id = get_account_id(&env, env.invoker());
-            put_admin(&env, Address::Account(admin_id));
+            if is_not_contract(&env) {
+                let admin_id = get_account_id(&env, env.invoker());
+                put_admin(&env, Address::Account(admin_id));
 
-            init_token(&env);
-            put_open(&env, true);
-            put_spots(&env, spots);
-            empty_signups(&env);
-            put_payments(&env, get_payments(&env));
-            Ok(())
+                init_token(&env);
+                put_open(&env, true);
+                put_spots(&env, spots);
+                empty_signups(&env);
+                put_payments(&env, get_payments(&env));
+                Ok(())
+            } else {
+                Err(Error::NoCrossContract)
+            }
         } else {
             Err(Error::FaucetAlreadyInit)
         }
